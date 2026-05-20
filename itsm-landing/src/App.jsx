@@ -177,7 +177,7 @@ function WhatWeBuild() {
 
           <div className="build-card reveal-left">
             <div className="build-card-img">
-              <img src="/assets/Vector 45.png" alt="Core ITSM" />
+              <img src="https://res.cloudinary.com/dmhabztbf/image/upload/v1779286177/WhatsApp_Image_2026-05-20_at_5.27.28_PM_vkmtjd.jpg" alt="Core ITSM" />
             </div>
             <div className="build-card-text">
               <h3>Core ITSM, done deliberately:</h3>
@@ -194,7 +194,7 @@ function WhatWeBuild() {
 
           <div className="build-card reveal-right">
             <div className="build-card-img">
-              <img src="/assets/Vector 44.png" alt="Intelligence &amp; Automation" />
+              <img src="https://res.cloudinary.com/dmhabztbf/image/upload/v1779286177/WhatsApp_Image_2026-05-20_at_5.29.50_PM_ckehbf.jpg" alt="Intelligence &amp; Automation" />
             </div>
             <div className="build-card-text">
               <h3>Intelligence &amp; Automation, applied where it helps:</h3>
