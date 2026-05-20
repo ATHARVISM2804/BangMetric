@@ -350,7 +350,7 @@ function Footer() {
             <div className="footer-col">
               <h4>DISTURBA</h4>
               <a href="#">Job Coaching</a>
-              <a href="#">Without any Input</a>
+              <a href="#">Without any input</a>
               <a href="#">Nothing Suspicious</a>
             </div>
             <div className="footer-col">
