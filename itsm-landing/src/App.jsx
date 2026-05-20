@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import './index.css';
 
 /* ===== Scroll Reveal Hook ===== */
@@ -7,9 +7,104 @@ function useReveal() {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
     }, { threshold: 0.12 });
-    document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale').forEach(el => observer.observe(el));
+    document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale,.reveal-stagger').forEach(el => observer.observe(el));
     return () => observer.disconnect();
   }, []);
+}
+
+/* ===== Animated Counter Hook ===== */
+function useCounter(target, duration = 2000, shouldStart) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!shouldStart) return;
+    let start = 0;
+    const startTime = performance.now();
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * target));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [target, duration, shouldStart]);
+  return count;
+}
+
+/* ===== Parallax Hook ===== */
+function useParallax(speed = 0.3) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const onScroll = () => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      const scrolled = (window.innerHeight - rect.top) * speed;
+      ref.current.style.transform = `translateY(${scrolled * 0.05}px)`;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [speed]);
+  return ref;
+}
+
+/* ===== Cursor Glow ===== */
+function CursorGlow() {
+  useEffect(() => {
+    const glow = document.createElement('div');
+    glow.className = 'cursor-glow';
+    document.body.appendChild(glow);
+    let mouseX = 0, mouseY = 0, glowX = 0, glowY = 0;
+    const move = (e) => { mouseX = e.clientX; mouseY = e.clientY; };
+    window.addEventListener('mousemove', move);
+    const animate = () => {
+      glowX += (mouseX - glowX) * 0.15;
+      glowY += (mouseY - glowY) * 0.15;
+      glow.style.transform = `translate(${glowX}px, ${glowY}px)`;
+      requestAnimationFrame(animate);
+    };
+    animate();
+    return () => { window.removeEventListener('mousemove', move); glow.remove(); };
+  }, []);
+  return null;
+}
+
+/* ===== Scroll Progress Bar ===== */
+function ScrollProgress() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const h = document.documentElement;
+      const scrollTop = h.scrollTop || document.body.scrollTop;
+      const scrollHeight = h.scrollHeight - h.clientHeight;
+      const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      setProgress(pct);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return <div className="scroll-progress" style={{ width: `${progress}%` }} />;
+}
+
+/* ===== Back to Top Button ===== */
+function BackToTop() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > 600);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return (
+    <button
+      className={`back-to-top${show ? ' show' : ''}`}
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      aria-label="Back to top"
+    >
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 15l6-6 6 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </button>
+  );
 }
 
 /* ===== NAVBAR ===== */
@@ -57,7 +152,13 @@ function Hero() {
   return (
     <section className="hero" id="hero">
       <div className="hero-inner">
+        <div className="hero-orbs">
+          <span className="orb orb-1"></span>
+          <span className="orb orb-2"></span>
+          <span className="orb orb-3"></span>
+        </div>
         <h1>IT Service Management</h1>
+        <div className="hero-shine"></div>
       </div>
     </section>
   );
@@ -121,14 +222,23 @@ function ThinksDifferently() {
         <h2 className="reveal">How BANGMETRIC Thinks Differently</h2>
 
         <div className="thinks-diagram-container reveal-scale" style={{ transitionDelay: '0.1s' }}>
+          <div className="thinks-bg-glow"></div>
           <div className="thinks-line-svg">
             <svg width="100%" height="100%" viewBox="0 0 1180 430" preserveAspectRatio="none">
-              <path d="M 80 120 L 340 310 L 590 120 L 840 310 L 1100 120" fill="none" stroke="#C4B5FD" strokeWidth="1.5" />
+              <defs>
+                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#C4B5FD" stopOpacity="0.4"/>
+                  <stop offset="50%" stopColor="#A491EB" stopOpacity="1"/>
+                  <stop offset="100%" stopColor="#C4B5FD" stopOpacity="0.4"/>
+                </linearGradient>
+              </defs>
+              <path className="thinks-path" d="M 80 120 L 340 310 L 590 120 L 840 310 L 1100 120" fill="none" stroke="url(#lineGradient)" strokeWidth="1.5" />
             </svg>
           </div>
 
           <div className="think-node" style={{ left: '6.7%', top: '120px' }}>
             <div className="think-dot"></div>
+            <div className="think-pulse"></div>
             <div className="think-text top-text">
               <p className="think-content"><strong>Value streams<br />over ticket queues</strong></p>
             </div>
@@ -136,6 +246,7 @@ function ThinksDifferently() {
 
           <div className="think-node" style={{ left: '28.8%', top: '310px' }}>
             <div className="think-dot"></div>
+            <div className="think-pulse"></div>
             <div className="think-text bottom-text">
               <p className="think-content"><strong>Rightsized, right<br />now</strong> (what you need today,<br />expandable tomorrow)</p>
             </div>
@@ -143,6 +254,7 @@ function ThinksDifferently() {
 
           <div className="think-node" style={{ left: '50%', top: '120px' }}>
             <div className="think-dot"></div>
+            <div className="think-pulse"></div>
             <div className="think-text top-text">
               <p className="think-content"><strong>Flow metrics over vanity<br />metrics</strong> (MTTD/MTTR, FCR,<br />change failure rate, employee<br />effort)</p>
             </div>
@@ -150,6 +262,7 @@ function ThinksDifferently() {
 
           <div className="think-node" style={{ left: '71.2%', top: '310px' }}>
             <div className="think-dot"></div>
+            <div className="think-pulse"></div>
             <div className="think-text bottom-text">
               <p className="think-content"><strong>AI with intent</strong> (triage,<br />insight, knowledge,<br />change risk)</p>
             </div>
@@ -157,6 +270,7 @@ function ThinksDifferently() {
 
           <div className="think-node" style={{ left: '93.2%', top: '120px' }}>
             <div className="think-dot"></div>
+            <div className="think-pulse"></div>
             <div className="think-text top-text">
               <p className="think-content"><strong>Resolution over<br />SLA theatre</strong></p>
             </div>
@@ -171,6 +285,10 @@ function ThinksDifferently() {
 function WhatWeBuild() {
   return (
     <section className="build section-pad" id="build">
+      <div className="build-ambient">
+        <span className="ambient-orb a-orb-1"></span>
+        <span className="ambient-orb a-orb-2"></span>
+      </div>
       <div className="container">
         <h2 className="reveal">What We Build with ServiceNow ITSM</h2>
         <div className="build-cards">
@@ -214,6 +332,26 @@ function WhatWeBuild() {
 }
 
 /* ===== RESULTS ===== */
+function ResultCard({ icon, stat, desc, delay }) {
+  const [visible, setVisible] = useState(false);
+  const cardRef = useRef(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setVisible(true);
+    }, { threshold: 0.3 });
+    if (cardRef.current) observer.observe(cardRef.current);
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <div className="result-card reveal" ref={cardRef} style={{ transitionDelay: `${delay}s` }}>
+      <div className="result-icon-wrap">
+        <img src={icon} alt={stat} />
+      </div>
+      <h4 className={visible ? 'animate-in' : ''}>{stat}</h4>
+      <p>{desc}</p>
+    </div>
+  );
+}
 function Results() {
   const items = [
     { icon: '/assets/Icon-for-web 1 (1).png', stat: '20–40%', desc: 'faster MTTR' },
@@ -229,11 +367,7 @@ function Results() {
         <p className="subtitle reveal">When ITSM is designed properly, the numbers move</p>
         <div className="results-grid">
           {items.map((item, i) => (
-            <div className="result-card reveal" key={i} style={{ transitionDelay: `${i * .1}s` }}>
-              <img src={item.icon} alt={item.stat} />
-              <h4>{item.stat}</h4>
-              <p>{item.desc}</p>
-            </div>
+            <ResultCard key={i} {...item} delay={i * 0.1} />
           ))}
         </div>
       </div>
@@ -383,6 +517,8 @@ export default function App() {
   useReveal();
   return (
     <>
+      <CursorGlow />
+      <ScrollProgress />
       <Navbar />
       <Hero />
       <Intro />
@@ -395,6 +531,7 @@ export default function App() {
       <WhyChoose />
       <CTASection />
       <Footer />
+      <BackToTop />
     </>
   );
 }
