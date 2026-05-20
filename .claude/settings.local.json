@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\athar\\\\Downloads\\\\OneDrive_2026-05-19\\\\IT Service Management\\\\itsm-landing\" -Recurse -File | Where-Object { $_.FullName -notmatch 'node_modules' } | Select-Object FullName)"
+    ]
+  }
+}
